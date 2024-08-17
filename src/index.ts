@@ -1,28 +1,21 @@
 import { Elysia } from "elysia";
-import { Client } from "pg";
+import { connectToDatabase } from "./utils/db"; // Import the database utility
+import { userRoutes } from "./routes/userRoutes"; // Import the user routes
 import dotenv from "dotenv";
 
 dotenv.config(); // Load environment variables from .env
 
 const app = new Elysia();
 
-const client = new Client({
-  connectionString: process.env.DATABASE_URL,
-});
+// Connect to PostgreSQL when the server starts
+connectToDatabase();
 
-async function connectToDatabase() {
-  try {
-    await client.connect();
-    console.log("Connected to PostgreSQL successfully!");
-  } catch (error) {
-    console.error("Failed to connect to PostgreSQL:", error);
-  }
-}
+// Register the user routes
+userRoutes(app);
 
 app.get("/", () => "Hello Elysia");
 
-app.listen(3000, async () => {
-  await connectToDatabase(); // Connect to PostgreSQL on server start
+app.listen(3000, () => {
   console.log(
     `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
   );
