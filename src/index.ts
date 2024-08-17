@@ -1,19 +1,29 @@
 import { Elysia } from "elysia";
-import { readFileSync } from "fs";
+import { Client } from "pg";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables from .env
 
 const app = new Elysia();
 
-app.get("/", () => {
-  const html = readFileSync("public/index.html", "utf-8");
-  return new Response(html, {
-    headers: {
-      "Content-Type": "text/html",
-    },
-  });
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
 });
 
-app.listen(3000);
+async function connectToDatabase() {
+  try {
+    await client.connect();
+    console.log("Connected to PostgreSQL successfully!");
+  } catch (error) {
+    console.error("Failed to connect to PostgreSQL:", error);
+  }
+}
 
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+app.get("/", () => "Hello Elysia");
+
+app.listen(3000, async () => {
+  await connectToDatabase(); // Connect to PostgreSQL on server start
+  console.log(
+    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  );
+});
